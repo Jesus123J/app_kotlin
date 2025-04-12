@@ -7,7 +7,9 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.RadioButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import java.lang.Math.log
@@ -21,7 +23,8 @@ class Main : AppCompatActivity() {
     private lateinit var editTextTime : EditText
     private lateinit var button: Button
     private lateinit var texView: TextView
-
+    private lateinit var textViewMensual: TextView
+    private lateinit var checkBox: CheckBox
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //  supportActionBar?.hide()
@@ -32,39 +35,47 @@ class Main : AppCompatActivity() {
         editTextTime = this.findViewById(R.id.editTextTime)
         button = this.findViewById(R.id.button)
         texView = this.findViewById(R.id.textViewShowTasaMensual)
-        editTextPrecio.addTextChangedListener(object : TextWatcher{
-            override fun afterTextChanged(s: Editable?) {
-                val texto = s.toString()
-                if (!texto.matches(Regex("^\\d+(\\.\\d+)?$"))) {
-                   println("Error")
-                }
+        textViewMensual = this.findViewById(R.id.textViewCuotaMensual)
+        checkBox = this.findViewById(R.id.checkBox)
+        checkBox.setOnClickListener(View.OnClickListener {
+            if (editTextPrecio.text.isNotBlank()) {
+                val textPre = editTextPrecio.text.toString().toDouble() / 100
+                editTextPrecio.setText(textPre.toString())
+
             }
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            if (editTextTas.text.isNotBlank()){
+                val text = editTextTas.text.toString().toDouble() / 100
+                editTextTas.setText(text.toString())
 
+            }
         })
         button.setOnClickListener(View.OnClickListener {
-            calca()
+            main()
         })
     }
 
-  private fun calca() {
-      try {
 
-          val monto = editTextPrecio.text.toString().toDouble()
-          val montoTas = editTextTas.text.toString().toDouble()
-          val time = editTextTime.text.toString().toDouble()
-          println("amount -> $montoTas ")
-          val tasaEfectivaMensual = (1 + montoTas).pow(1 / 12.0) - 1
+    fun calcularTEM(tea: Double): Double {
+        return (1 + tea).pow(1.0 / 12) - 1
+    }
 
-          println(tasaEfectivaMensual)
-          Log.i("Informacion" , " Cantidad")
-          texView.text = "bonbon $tasaEfectivaMensual"
+    private fun calcularCuotaMensual(precio: Double, tasaMensual: Double, tiempo: Int): Double {
+        return precio * (tasaMensual * (1 + tasaMensual).pow(tiempo) / ((1 + tasaMensual).pow(tiempo) - 1))
+    }
 
+    fun main() {
 
-      } catch (e: NumberFormatException) {
+        val precio = editTextPrecio.text.toString().toDouble()
+        val tea = editTextTas.text.toString().toDouble()
 
-      }
-  }
+        val tiempo = editTextTime.text.toString().toInt()
+
+        val tasaMensual = calcularTEM(tea)
+        val cuotaMensual = calcularCuotaMensual(precio, tasaMensual, tiempo)
+
+        texView.text = "%.6f".format(tasaMensual)
+        textViewMensual.text = "%.2f".format(cuotaMensual)
+    }
+
 }
